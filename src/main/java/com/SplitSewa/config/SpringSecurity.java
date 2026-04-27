@@ -40,8 +40,7 @@ public class SpringSecurity {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))  // add this
                 .authorizeHttpRequests(auth -> auth
-//                        .requestMatchers("/user/**").permitAll()
-                        .requestMatchers("/user/**", "/esewa-pay", "/success", "/failure").permitAll()
+                        .requestMatchers("/user/**").permitAll()
                         .anyRequest().authenticated())
                 .httpBasic(basic -> basic.disable())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);  // add this
@@ -59,21 +58,20 @@ public class SpringSecurity {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:5173"
-        ));
+        // Allow requests from React app
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:8090"));
 
-        configuration.setAllowedMethods(Arrays.asList(
-                "GET", "POST", "PUT", "DELETE", "OPTIONS"
-        ));
+        // Allow all HTTP methods
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 
+        // Allow all headers
         configuration.setAllowedHeaders(Arrays.asList("*"));
 
+        // Allow credentials (needed for Basic Auth)
         configuration.setAllowCredentials(true);
 
-        UrlBasedCorsConfigurationSource source =
-                new UrlBasedCorsConfigurationSource();
-
+        // Apply CORS to all endpoints
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
 
         return source;

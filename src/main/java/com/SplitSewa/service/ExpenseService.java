@@ -7,11 +7,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class ExpenseService {
@@ -122,39 +123,11 @@ public class ExpenseService {
         splits.forEach(s -> s.setSettled(true));
         expenseSplitRepo.saveAll(splits);
 
-        // eSewa v2 payment form data
-        String amount = req.getAmount().toString();
-        String txUuid = "SPLIT-" + payer.getId() + "-" + UUID.randomUUID().toString().substring(0, 8);
-        String productCode = "EPAYTEST";
-        String totalAmount = amount;
-        String secretKey = "8gBm/:&EnhH.1/q";
+        String esewaLink = "https://uat.esewa.com.np/epay/main?amt=" + req.getAmount()
+                + "&txAmt=0&psc=0&pdc=0&scd=EPAYTEST&pid=SPLIT-" + payer.getId()
+                + "&su=http://localhost:8080/success&fu=http://localhost:8080/failure";
 
-        String signedFields = "total_amount=" + totalAmount + ",transaction_uuid=" + txUuid + ",product_code=" + productCode;
-        String signature = generateHmacSHA256(signedFields, secretKey);
-
-        // Return as JSON so frontend can build the form
-        return "{" +
-                "\"url\":\"https://rc-epay.esewa.com.np/api/epay/main/v2/form\"," +
-                "\"amount\":\"" + amount + "\"," +
-                "\"total_amount\":\"" + totalAmount + "\"," +
-                "\"transaction_uuid\":\"" + txUuid + "\"," +
-                "\"product_code\":\"" + productCode + "\"," +
-                "\"signature\":\"" + signature + "\"," +
-                "\"success_url\":\"http://localhost:8080/success\"," +
-                "\"failure_url\":\"http://localhost:8080/failure\"" +
-                "}";
-    }
-
-    private String generateHmacSHA256(String data, String secret) {
-        try {
-            Mac mac = Mac.getInstance("HmacSHA256");
-            SecretKeySpec secretKeySpec = new SecretKeySpec(secret.getBytes(), "HmacSHA256");
-            mac.init(secretKeySpec);
-            byte[] hash = mac.doFinal(data.getBytes());
-            return Base64.getEncoder().encodeToString(hash);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to generate signature", e);
-        }
+        return "Settled. Pay via eSewa: " + esewaLink;
     }
 
     private ExpenseResponse mapToResponse(Expense expense) {
