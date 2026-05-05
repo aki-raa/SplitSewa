@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-// Expense.java
 @Entity
 @Table(name = "expenses")
 @Data @NoArgsConstructor @AllArgsConstructor
@@ -25,6 +24,7 @@ public class Expense {
 
     private BigDecimal amount;
     private String description;
+    private String category;  // add this
     private LocalDateTime createdAt;
 
     @PrePersist

@@ -4,11 +4,14 @@ import com.SplitSewa.dto.member.AddMemberRequest;
 import com.SplitSewa.dto.group.CreateGroupRequest;
 import com.SplitSewa.dto.member.GroupMemberResponse;
 import com.SplitSewa.dto.group.GroupResponse;
+import com.SplitSewa.model.GroupMember;
 import com.SplitSewa.model.UserEntity;
+import com.SplitSewa.repo.GroupMemberRepository;
 import com.SplitSewa.repo.UserRepo;
 import com.SplitSewa.service.GroupService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -19,8 +22,11 @@ import java.util.List;
 @RequestMapping("/groups")
 @RequiredArgsConstructor
 public class GroupController {
+    @Autowired
+    private GroupMemberRepository groupMemberRepository;
     private final GroupService groupService;
     private final UserRepo userRepo;  // make it final, remove @Autowired
+
 
     private UserEntity getCurrentUser(Authentication auth) {
         String email = auth.getName();
@@ -56,5 +62,22 @@ public class GroupController {
             @PathVariable Long id,
             Authentication auth) {
         return ResponseEntity.ok(groupService.getMembers(id, getCurrentUser(auth)));
+    }
+
+    @GetMapping("/my")
+    public ResponseEntity<List<GroupResponse>> getMyGroups(Authentication auth) {
+        String email = auth.getName();
+        UserEntity user = userRepo.findUserByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        List<GroupMember> memberships = groupMemberRepository.findByUserId(user.getId());
+        List<GroupResponse> groups = memberships.stream().map(m -> {
+            GroupResponse r = new GroupResponse();
+            r.setId(m.getGroup().getId());
+            r.setName(m.getGroup().getName());
+            r.setCreatedBy(m.getGroup().getCreatedBy().getUsername());
+            r.setCreatedAt(m.getGroup().getCreatedAt());
+            return r;
+        }).toList();
+        return ResponseEntity.ok(groups);
     }
 }

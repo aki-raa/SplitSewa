@@ -20,6 +20,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -59,8 +60,11 @@ public class SpringSecurity {
         CorsConfiguration configuration = new CorsConfiguration();
 
         // Allow requests from React app
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:8090"));
 
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "https://splitsewa-frontend.netlify.app"
+        ));
         // Allow all HTTP methods
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 
