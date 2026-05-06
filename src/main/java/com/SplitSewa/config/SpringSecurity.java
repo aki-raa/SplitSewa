@@ -63,7 +63,7 @@ public class SpringSecurity {
 
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:5173",
-                "https://old-site.netlify.app"
+                "https://splitsewa.netlify.app"
         ));
         // Allow all HTTP methods
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
