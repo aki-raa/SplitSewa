@@ -16,12 +16,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
-
+import com.SplitSewa.model.ExpenseSplit;
+import com.SplitSewa.repo.ExpenseSplitRepo;
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/groups")
 @RequiredArgsConstructor
 public class GroupController {
+    @Autowired
+    private ExpenseSplitRepo expenseSplitRepo;
     @Autowired
     private GroupMemberRepository groupMemberRepository;
     private final GroupService groupService;
@@ -79,5 +85,40 @@ public class GroupController {
             return r;
         }).toList();
         return ResponseEntity.ok(groups);
+    }
+
+    @GetMapping("/summary")
+    public ResponseEntity<Map<String, Object>> getSummary(Authentication auth) {
+        String email = auth.getName();
+        UserEntity user = userRepo.findUserByEmail(email).orElseThrow();
+
+        List<GroupMember> memberships = groupMemberRepository.findByUserId(user.getId());
+
+        BigDecimal totalOwed = BigDecimal.ZERO;    // others owe you
+        BigDecimal totalYouOwe = BigDecimal.ZERO;  // you owe others
+
+        for (GroupMember m : memberships) {
+            Long groupId = m.getGroup().getId();
+            List<ExpenseSplit> splits = expenseSplitRepo
+                    .findByExpense_GroupIdAndSettled(groupId, false);
+
+            for (ExpenseSplit split : splits) {
+                Long creditorId = split.getExpense().getPaidBy().getId();
+                Long debtorId = split.getUser().getId();
+
+                if (creditorId.equals(user.getId()) && !debtorId.equals(user.getId())) {
+                    totalOwed = totalOwed.add(split.getAmountOwed());
+                }
+                if (debtorId.equals(user.getId()) && !creditorId.equals(user.getId())) {
+                    totalYouOwe = totalYouOwe.add(split.getAmountOwed());
+                }
+            }
+        }
+
+        Map<String, Object> summary = new HashMap<>();
+        summary.put("totalOwed", totalOwed);
+        summary.put("totalYouOwe", totalYouOwe);
+        summary.put("groupCount", memberships.size());
+        return ResponseEntity.ok(summary);
     }
 }
