@@ -137,8 +137,13 @@ public class ExpenseService {
     public String settleExpense(SettlementRequest req, String email) {
         UserEntity payer = userRepo.findUserByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        userRepo.findById(req.getToUserId())
+        UserEntity payee = userRepo.findById(req.getToUserId())
                 .orElseThrow(() -> new RuntimeException("Payee not found"));
+
+        // ✅ Prevent settling with yourself
+        if (payer.getId().equals(payee.getId())) {
+            throw new RuntimeException("You cannot settle a payment with yourself");
+        }
 
         // Only settle splits up to the amount paid
         List<ExpenseSplit> splits = expenseSplitRepo
