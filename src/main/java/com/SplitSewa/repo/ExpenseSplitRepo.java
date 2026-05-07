@@ -9,7 +9,10 @@ import java.util.List;
 
 public interface ExpenseSplitRepo extends JpaRepository<ExpenseSplit,Long> {
     List<BalanceResponse> findExpenseById(@Valid Long id);
-
+    // In ExpenseSplitRepo
+    List<ExpenseSplit> findByUserIdAndExpense_GroupIdAndExpense_PaidBy_IdAndSettled(
+            Long userId, Long groupId, Long paidById, boolean settled
+    );
     List<ExpenseSplit> findByUserIdAndExpense_GroupIdAndSettled(Long userId, Long groupId, boolean settled);
 
     List<ExpenseSplit> findByExpense_GroupIdAndSettled(Long groupId, boolean settled);

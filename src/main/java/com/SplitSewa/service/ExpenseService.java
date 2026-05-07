@@ -140,17 +140,19 @@ public class ExpenseService {
         UserEntity payee = userRepo.findById(req.getToUserId())
                 .orElseThrow(() -> new RuntimeException("Payee not found"));
 
-        // ✅ Prevent settling with yourself
         if (payer.getId().equals(payee.getId())) {
             throw new RuntimeException("You cannot settle a payment with yourself");
         }
 
-        // Only settle splits up to the amount paid
+        // ✅ Only fetch splits where payer owes THIS specific payee
         List<ExpenseSplit> splits = expenseSplitRepo
-                .findByUserIdAndExpense_GroupIdAndSettled(payer.getId(), req.getGroupId(), false);
+                .findByUserIdAndExpense_GroupIdAndSettled(payer.getId(), req.getGroupId(), false)
+                .stream()
+                .filter(s -> s.getExpense().getPaidBy().getId().equals(req.getToUserId()))
+                .collect(java.util.stream.Collectors.toList());
 
         if (splits.isEmpty()) {
-            throw new RuntimeException("You have no outstanding balance in this group");
+            throw new RuntimeException("You have no outstanding balance with this user in this group");
         }
 
         BigDecimal remaining = req.getAmount();
@@ -160,14 +162,13 @@ public class ExpenseService {
                 split.setSettled(true);
                 remaining = remaining.subtract(split.getAmountOwed());
             } else {
-                // partial settlement — split the split
                 split.setAmountOwed(split.getAmountOwed().subtract(remaining));
                 remaining = BigDecimal.ZERO;
             }
         }
         expenseSplitRepo.saveAll(splits);
 
-        // eSewa v2
+        // eSewa v2 payload
         String amount = req.getAmount().setScale(2, RoundingMode.HALF_UP).toString();
         String txUuid = "SPLIT-" + payer.getId() + "-" + java.util.UUID.randomUUID().toString().substring(0, 8);
         String productCode = "EPAYTEST";
