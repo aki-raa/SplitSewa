@@ -144,6 +144,10 @@ public class ExpenseService {
         List<ExpenseSplit> splits = expenseSplitRepo
                 .findByUserIdAndExpense_GroupIdAndSettled(payer.getId(), req.getGroupId(), false);
 
+        if (splits.isEmpty()) {
+            throw new RuntimeException("You have no outstanding balance in this group");
+        }
+
         BigDecimal remaining = req.getAmount();
         for (ExpenseSplit split : splits) {
             if (remaining.compareTo(BigDecimal.ZERO) <= 0) break;
