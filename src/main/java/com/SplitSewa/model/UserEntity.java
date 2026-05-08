@@ -15,7 +15,7 @@ public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)  // use IDENTITY, not AUTO
     private Long id;
-
+    private String phone; // eSewa registered number e.g. 9841xxxxxx
     private String username;
     private String password;
     private String email;

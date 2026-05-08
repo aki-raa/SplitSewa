@@ -9,4 +9,5 @@ public class GroupMemberResponse {
     private String username;
     private String email;
     private LocalDateTime joinedAt;
+    private String phone;
 }

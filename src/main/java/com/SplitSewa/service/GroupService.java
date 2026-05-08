@@ -84,6 +84,7 @@ public class GroupService {
         r.setUsername(m.getUser().getUsername());
         r.setEmail(m.getUser().getEmail());
         r.setJoinedAt(m.getJoinedAt());
+        r.setPhone(m.getUser().getPhone());
         return r;
     }
 }

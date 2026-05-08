@@ -25,6 +25,7 @@ public class UserService {
         UserEntity user=new UserEntity();
         user.setUsername(dto.getUsername());
         user.setEmail(dto.getEmail());
+        user.setPhone(dto.getPhone());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
         return mapToDto(userRepo.save(user));
 
