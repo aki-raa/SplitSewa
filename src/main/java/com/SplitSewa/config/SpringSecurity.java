@@ -63,7 +63,8 @@ public class SpringSecurity {
 
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:5173",
-                "https://splitsewa.netlify.app"
+                "https://splitsewa.netlify.app",
+                "https://splitsewa-frontend.vercel.app"
         ));
         // Allow all HTTP methods
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
